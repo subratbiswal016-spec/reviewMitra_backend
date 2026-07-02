@@ -39,13 +39,30 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
-    // 2. Fetch Business Profile
+    // 2. Fetch Business Profile & Enforce Usage Limits
     let businessStr = "Generic Business / Shop / India / Professional / English / No special rules";
+    let subscription = null;
+    let userId = null;
     
     if (businessId) {
-      const business = await prisma.business.findUnique({ where: { id: businessId } });
+      const business = await prisma.business.findUnique({ 
+        where: { id: businessId },
+        include: { user: { include: { subscription: true } } }
+      });
       if (business) {
         businessStr = `${business.name} / ${business.type} / ${business.city} / ${business.tone} / ${business.language} / ${business.phone} / ${business.rules || 'None'}`;
+        subscription = business.user?.subscription;
+        userId = business.userId;
+      }
+    }
+
+    // Check usage limits
+    if (subscription) {
+      if (subscription.status === 'trial' && subscription.repliesGeneratedThisMonth >= 20) {
+        return NextResponse.json({ error: "LIMIT_REACHED" }, { 
+          status: 402, // Payment Required
+          headers: { "Access-Control-Allow-Origin": "*" } 
+        });
       }
     }
 
@@ -85,8 +102,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Failed to generate valid drafts" }, { status: 500 });
     }
 
-    // 6. Save to database history
-    if (businessId) {
+    // 6. Save to database history and update usage
+    if (businessId && userId) {
       await prisma.reply.create({
         data: {
           businessId,
@@ -96,6 +113,15 @@ export async function POST(req: NextRequest) {
           generatedReplies: JSON.stringify(drafts),
         }
       });
+      
+      if (subscription) {
+        await prisma.subscription.update({
+          where: { userId: userId },
+          data: {
+            repliesGeneratedThisMonth: { increment: 1 }
+          }
+        });
+      }
     }
 
     // 7. Return drafts with CORS headers

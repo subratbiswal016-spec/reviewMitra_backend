@@ -13,7 +13,7 @@ export default function DashboardPage() {
   
   // Profile State
   const [profileData, setProfileData] = useState({
-    name: "", placeId: "", type: "", phone: "", tone: "Professional", language: "English", rules: ""
+    name: "", city: "", type: "", phone: "", tone: "Professional", language: "English", rules: ""
   });
   const [businessId, setBusinessId] = useState("");
   const [loading, setLoading] = useState(false);
@@ -30,7 +30,7 @@ export default function DashboardPage() {
           if (data.business) {
             setProfileData({
               name: data.business.name || "",
-              placeId: data.business.placeId || "",
+              city: data.business.city || "",
               type: data.business.type || "",
               phone: data.business.phone || "",
               tone: data.business.tone || "Professional",
@@ -140,6 +140,17 @@ export default function DashboardPage() {
                     <div>
                       <label className="block text-sm font-medium text-slate-700 mb-1">Business Type</label>
                       <input required type="text" value={profileData.type} onChange={(e) => setProfileData({...profileData, type: e.target.value})} className="w-full px-3 py-2 border rounded-lg outline-none focus:border-blue-500" placeholder="e.g. Cafe, Salon" />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">Phone Number</label>
+                      <input required type="text" value={profileData.phone} onChange={(e) => setProfileData({...profileData, phone: e.target.value})} className="w-full px-3 py-2 border rounded-lg outline-none focus:border-blue-500" placeholder="e.g. +91 9876543210" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">City</label>
+                      <input required type="text" value={profileData.city} onChange={(e) => setProfileData({...profileData, city: e.target.value})} className="w-full px-3 py-2 border rounded-lg outline-none focus:border-blue-500" placeholder="e.g. Mumbai" />
                     </div>
                   </div>
 
