@@ -60,7 +60,11 @@ export async function GET(req: NextRequest) {
       where: { userId }
     });
 
-    return NextResponse.json({ business });
+    const subscription = await prisma.subscription.findUnique({
+      where: { userId }
+    });
+
+    return NextResponse.json({ business, subscription });
 
   } catch (error) {
     console.error("Business API Error:", error);
