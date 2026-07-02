@@ -179,42 +179,45 @@ export default function SuperAdminPage() {
   return (
     <div className="min-h-screen bg-slate-50">
       {/* Navbar */}
-      <nav className="bg-slate-900 text-white shadow-md">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-3">
-              <span className="text-2xl">👑</span>
-              <span className="font-bold text-lg tracking-wide">ReviewMitra Super Admin</span>
-            </div>
-            
-            <div className="flex gap-6">
+      <nav className="bg-slate-900 text-white shadow-md py-4 px-6">
+        <div className="flex flex-col md:flex-row justify-between items-center max-w-5xl mx-auto">
+          <div className="flex items-center gap-2 mb-4 md:mb-0">
+            <span className="text-2xl font-black bg-gradient-to-r from-blue-600 to-indigo-600 text-transparent bg-clip-text">ReviewMitra</span>
+            <span className="px-2 py-1 bg-slate-100 text-slate-600 text-xs font-bold rounded-md tracking-wider">SUPER ADMIN</span>
+          </div>
+          <nav>
+            <div className="flex flex-wrap gap-2 md:gap-6 justify-center">
               <button 
                 onClick={() => handleTabChange("create")}
                 className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === 'create' ? 'bg-slate-800 text-white' : 'text-slate-300 hover:bg-slate-700 hover:text-white'}`}
               >
                 <UserPlus size={18} />
-                Create Customer
+                <span className="hidden sm:inline">Create Customer</span>
+                <span className="sm:hidden">Create</span>
               </button>
               <button 
                 onClick={() => handleTabChange("view")}
                 className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === 'view' ? 'bg-slate-800 text-white' : 'text-slate-300 hover:bg-slate-700 hover:text-white'}`}
               >
                 <Users size={18} />
-                View Customers
+                <span className="hidden sm:inline">View Customers</span>
+                <span className="sm:hidden">View</span>
               </button>
               <button 
                 onClick={() => handleTabChange("payment")}
                 className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === 'payment' ? 'bg-slate-800 text-white' : 'text-slate-300 hover:bg-slate-700 hover:text-white'}`}
               >
                 <span>💳</span>
-                Payment QR
+                <span className="hidden sm:inline">Payment QR</span>
+                <span className="sm:hidden">QR</span>
               </button>
-              <Link href="/login" className="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-red-400 hover:bg-slate-800 hover:text-red-300 transition-colors ml-4 border border-slate-700">
+              <Link href="/login" className="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-red-400 hover:bg-slate-800 hover:text-red-300 transition-colors ml-0 md:ml-4 border border-slate-700">
                 <LogOut size={18} />
-                Exit Admin
+                <span className="hidden sm:inline">Exit Admin</span>
+                <span className="sm:hidden">Exit</span>
               </Link>
             </div>
-          </div>
+          </nav>
         </div>
       </nav>
 
@@ -251,7 +254,7 @@ export default function SuperAdminPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">Customer Email</label>
                   <input
@@ -260,7 +263,7 @@ export default function SuperAdminPage() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                    placeholder="customer@restaurant.com"
+                    placeholder="e.g. client@restaurant.com"
                   />
                 </div>
                 <div>
@@ -271,7 +274,7 @@ export default function SuperAdminPage() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                    placeholder="securepass123"
+                    placeholder="e.g. securepass123"
                   />
                 </div>
               </div>
@@ -360,7 +363,7 @@ export default function SuperAdminPage() {
                               />
                             </td>
                             <td className="py-3 px-4">
-                              <div className="flex gap-2">
+                              <div className="flex flex-col gap-2">
                                 <button 
                                   onClick={() => {
                                     const el = document.getElementById(`limit-${user.id}`) as HTMLInputElement;
@@ -408,18 +411,25 @@ export default function SuperAdminPage() {
         {activeTab === "payment" && (
           <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8">
             <h2 className="text-2xl font-bold text-slate-800 mb-2">Global Payment QR Code</h2>
-            <p className="text-slate-500 mb-8">Paste the image URL of your UPI QR Code. All customers will see this in their billing dashboard.</p>
+            <p className="text-slate-500 mb-8">Upload a photo of your UPI QR Code. All customers will see this in their billing dashboard. (It is saved securely in the database).</p>
             
             <form onSubmit={handleSaveQR} className="space-y-5">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">QR Code Image URL</label>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Upload QR Code Image</label>
                 <input
-                  type="url"
-                  required
-                  value={qrUrl}
-                  onChange={(e) => setQrUrl(e.target.value)}
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      const reader = new FileReader();
+                      reader.onloadend = () => {
+                        setQrUrl(reader.result as string);
+                      };
+                      reader.readAsDataURL(file);
+                    }
+                  }}
                   className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                  placeholder="https://i.imgur.com/your-qr-code.png"
                 />
               </div>
 

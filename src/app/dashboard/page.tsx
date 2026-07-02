@@ -92,15 +92,15 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 flex">
+    <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row">
       {/* Sidebar */}
-      <div className="w-64 bg-white border-r border-slate-200 flex flex-col">
+      <div className="w-full md:w-64 bg-white border-b md:border-b-0 md:border-r border-slate-200 flex flex-col md:min-h-screen">
         <div className="p-6 border-b border-slate-200 flex items-center gap-2">
           <span className="text-xl">✨</span>
           <span className="font-bold text-slate-800">ReviewMitra</span>
         </div>
 
-        <nav className="flex-1 p-4 space-y-2">
+        <nav className="flex-1 p-4 space-y-2 flex flex-col sm:flex-row md:flex-col sm:gap-2 md:gap-0">
           <button
             onClick={() => setActiveTab("profile")}
             className={`w-full flex items-center gap-3 px-4 py-2 rounded-lg font-medium transition-colors ${activeTab === "profile" ? "bg-blue-50 text-blue-700" : "text-slate-600 hover:bg-slate-50"}`}
@@ -144,7 +144,7 @@ export default function DashboardPage() {
                 <form onSubmit={handleSaveProfile} className="space-y-4">
                   {message && <div className="p-3 bg-green-50 text-green-700 rounded-md text-sm">{message}</div>}
                   
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-slate-700 mb-1">Business Name</label>
                       <input required type="text" value={profileData.name} onChange={(e) => setProfileData({...profileData, name: e.target.value})} className="w-full px-3 py-2 border rounded-lg outline-none focus:border-blue-500" placeholder="e.g. Writer's Cafe" />
@@ -155,7 +155,7 @@ export default function DashboardPage() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-slate-700 mb-1">Phone Number</label>
                       <input required type="text" value={profileData.phone} onChange={(e) => setProfileData({...profileData, phone: e.target.value})} className="w-full px-3 py-2 border rounded-lg outline-none focus:border-blue-500" placeholder="e.g. +91 9876543210" />
@@ -166,7 +166,7 @@ export default function DashboardPage() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-slate-700 mb-1">Reply Tone</label>
                       <select value={profileData.tone} onChange={(e) => setProfileData({...profileData, tone: e.target.value})} className="w-full px-3 py-2 border rounded-lg outline-none focus:border-blue-500">
@@ -195,16 +195,16 @@ export default function DashboardPage() {
                     />
                   </div>
 
-                  <div className="flex items-center justify-between mt-6 pt-4 border-t border-slate-100">
-                    <div>
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mt-6 pt-4 border-t border-slate-100 gap-4">
+                    <div className="w-full sm:w-auto overflow-hidden">
                       <label className="block text-sm font-bold text-slate-800">Your Business ID</label>
                       <p className="text-xs text-slate-500">Copy this into your Chrome Extension</p>
-                      <code className="mt-1 block bg-slate-100 px-3 py-1 rounded text-sm text-blue-600 font-mono">
+                      <code className="mt-1 block bg-slate-100 px-3 py-1 rounded text-sm text-blue-600 font-mono truncate max-w-[200px] sm:max-w-[300px]">
                         {businessId || "Save profile to get ID"}
                       </code>
                     </div>
                     
-                    <button type="submit" disabled={loading} className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors">
+                    <button type="submit" disabled={loading} className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors">
                       {loading ? "Saving..." : "Save Settings"}
                     </button>
                   </div>
