@@ -1,0 +1,64 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String         @id @default(cuid())
+  email          String         @unique
+  password       String
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  businesses     Business[]
+  subscription   Subscription?
+}
+
+model Business {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  name      String
+  type      String   // Restaurant/Salon/Clinic/Shop/Other
+  city      String
+  phone     String
+  tone      String   // Warm/Professional/Playful
+  language  String   // English/Hinglish/Match reviewer
+  rules     String?
+  
+  replies   Reply[]
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Reply {
+  id               String   @id @default(cuid())
+  businessId       String
+  business         Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  
+  reviewerName     String
+  rating           Int
+  originalReview   String
+  
+  // JSON array of generated drafts stored as string
+  generatedReplies String
+  
+  createdAt        DateTime @default(now())
+}
+
+model Subscription {
+  id                   String   @id @default(cuid())
+  userId               String   @unique
+  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  status               String   @default("trial") // trial, active, past_due, canceled
+  repliesGeneratedThisMonth Int @default(0)
+  
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+}
