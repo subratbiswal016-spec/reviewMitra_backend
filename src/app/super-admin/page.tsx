@@ -371,7 +371,20 @@ export default function SuperAdminPage() {
                           <>
                             <td className="py-3 px-4 text-sm font-medium text-slate-800">{user.email}</td>
                             <td className="py-3 px-4 text-sm text-slate-600">
-                              {user.subscription?.repliesGeneratedThisMonth || 0} used
+                              <div className="flex flex-col gap-1 w-32">
+                                <div className="flex justify-between text-xs">
+                                  <span>{user.subscription?.repliesGeneratedThisMonth || 0} used</span>
+                                  <span className="font-semibold text-blue-600">
+                                    {Math.min(100, Math.round(((user.subscription?.repliesGeneratedThisMonth || 0) / (user.subscription?.maxLimit || 20)) * 100)) || 0}%
+                                  </span>
+                                </div>
+                                <div className="w-full bg-slate-200 rounded-full h-1.5 overflow-hidden">
+                                  <div 
+                                    className={`h-1.5 rounded-full ${((user.subscription?.repliesGeneratedThisMonth || 0) / (user.subscription?.maxLimit || 20)) >= 1 ? 'bg-red-500' : 'bg-blue-500'}`}
+                                    style={{ width: `${Math.min(100, Math.round(((user.subscription?.repliesGeneratedThisMonth || 0) / (user.subscription?.maxLimit || 20)) * 100)) || 0}%` }}
+                                  ></div>
+                                </div>
+                              </div>
                             </td>
                             <td className="py-3 px-4">
                               <input 

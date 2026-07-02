@@ -240,6 +240,20 @@ export default function DashboardPage() {
 
                 <div className="bg-white border border-slate-200 rounded-lg p-4">
                   <h4 className="text-sm font-semibold text-slate-800 mb-4">Usage Details</h4>
+                  
+                  <div className="mb-6">
+                    <div className="flex justify-between text-xs font-semibold mb-2">
+                      <span className="text-slate-500">Usage Progress</span>
+                      <span className="text-blue-600">{Math.min(100, Math.round(((subscription?.repliesGeneratedThisMonth || 0) / (subscription?.maxLimit || 20)) * 100)) || 0}% Used</span>
+                    </div>
+                    <div className="w-full bg-slate-100 rounded-full h-3 overflow-hidden">
+                      <div 
+                        className="bg-blue-500 h-3 rounded-full transition-all duration-500" 
+                        style={{ width: `${Math.min(100, Math.round(((subscription?.repliesGeneratedThisMonth || 0) / (subscription?.maxLimit || 20)) * 100)) || 0}%` }}
+                      ></div>
+                    </div>
+                  </div>
+
                   <div className="flex justify-between items-center py-2 border-b border-slate-100">
                     <span className="text-slate-600 text-sm">Allocated Limit</span>
                     <span className="font-medium">{subscription?.maxLimit || 20}</span>
