@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import bcrypt from "bcryptjs";
 
 export async function GET(req: NextRequest) {
   try {
@@ -29,18 +30,31 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { userId, maxLimit } = await req.json();
+    const { userId, maxLimit, email, password } = await req.json();
 
-    if (!userId || maxLimit === undefined) {
-      return NextResponse.json({ error: "Missing fields" }, { status: 400 });
+    if (!userId) {
+      return NextResponse.json({ error: "Missing userId" }, { status: 400 });
     }
 
-    const updated = await prisma.subscription.update({
-      where: { userId },
-      data: { maxLimit }
-    });
+    if (maxLimit !== undefined) {
+      await prisma.subscription.update({
+        where: { userId },
+        data: { maxLimit }
+      });
+    }
 
-    return NextResponse.json({ message: "Limit updated successfully", maxLimit: updated.maxLimit });
+    if (email || password) {
+      const dataToUpdate: any = {};
+      if (email) dataToUpdate.email = email;
+      if (password) dataToUpdate.password = await bcrypt.hash(password, 10);
+      
+      await prisma.user.update({
+        where: { id: userId },
+        data: dataToUpdate
+      });
+    }
+
+    return NextResponse.json({ message: "Customer updated successfully" });
   } catch (error) {
     console.error("Update Limit Error:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });

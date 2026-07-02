@@ -17,6 +17,11 @@ export default function SuperAdminPage() {
   const [qrUrl, setQrUrl] = useState("");
   const [loadingUsers, setLoadingUsers] = useState(false);
   
+  const [editingUserId, setEditingUserId] = useState<string | null>(null);
+  const [editEmail, setEditEmail] = useState("");
+  const [editPassword, setEditPassword] = useState("");
+  const [editLimit, setEditLimit] = useState(20);
+
   const [activeTab, setActiveTab] = useState("create");
 
   const handleCreateUser = async (e: React.FormEvent) => {
@@ -93,6 +98,31 @@ export default function SuperAdminPage() {
       }
     } catch(err) {
       alert("Error updating limit");
+    }
+  };
+
+  const handleUpdateUser = async (userId: string) => {
+    if (!adminSecret) return;
+    try {
+      const body: any = { userId, maxLimit: editLimit, email: editEmail };
+      if (editPassword) body.password = editPassword;
+
+      const res = await fetch("/api/admin/users", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", "x-admin-secret": adminSecret },
+        body: JSON.stringify(body)
+      });
+      
+      const data = await res.json();
+      if (res.ok) {
+        alert("Customer updated successfully!");
+        setEditingUserId(null);
+        fetchUsers(); // Refresh
+      } else {
+        alert("Failed to update customer: " + (data.error || ""));
+      }
+    } catch(err) {
+      alert("Error updating customer");
     }
   };
 
@@ -293,38 +323,74 @@ export default function SuperAdminPage() {
                   </thead>
                   <tbody>
                     {users.map(user => (
-                      <tr key={user.id} className="border-b border-slate-100 hover:bg-slate-50">
-                        <td className="py-3 px-4 text-sm font-medium text-slate-800">{user.email}</td>
-                        <td className="py-3 px-4 text-sm text-slate-600">
-                          {user.subscription?.repliesGeneratedThisMonth || 0} used
-                        </td>
-                        <td className="py-3 px-4">
-                          <input 
-                            type="number" 
-                            defaultValue={user.subscription?.maxLimit || 20}
-                            className="w-20 px-2 py-1 border border-slate-300 rounded text-sm outline-none focus:border-blue-500"
-                            id={`limit-${user.id}`}
-                          />
-                        </td>
-                        <td className="py-3 px-4">
-                          <div className="flex gap-2">
-                            <button 
-                              onClick={() => {
-                                const el = document.getElementById(`limit-${user.id}`) as HTMLInputElement;
-                                handleUpdateLimit(user.id, parseInt(el.value));
-                              }}
-                              className="text-xs font-semibold bg-blue-100 text-blue-700 px-3 py-1.5 rounded hover:bg-blue-200 transition-colors"
-                            >
-                              Save
-                            </button>
-                            <button 
-                              onClick={() => handleDeleteUser(user.id)}
-                              className="text-xs font-semibold bg-red-100 text-red-700 px-3 py-1.5 rounded hover:bg-red-200 transition-colors"
-                            >
-                              Delete
-                            </button>
-                          </div>
-                        </td>
+                      <tr key={user.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
+                        {editingUserId === user.id ? (
+                          <td colSpan={4} className="py-4 px-4">
+                            <div className="flex flex-col md:flex-row gap-4 items-end bg-slate-100 p-4 rounded-lg">
+                              <div className="flex-1 w-full">
+                                <label className="block text-xs font-semibold text-slate-500 mb-1">Email</label>
+                                <input type="email" value={editEmail} onChange={e => setEditEmail(e.target.value)} className="w-full px-3 py-1.5 border border-slate-300 rounded outline-none text-sm focus:border-blue-500" />
+                              </div>
+                              <div className="flex-1 w-full">
+                                <label className="block text-xs font-semibold text-slate-500 mb-1">New Password (leave blank to keep)</label>
+                                <input type="password" value={editPassword} onChange={e => setEditPassword(e.target.value)} className="w-full px-3 py-1.5 border border-slate-300 rounded outline-none text-sm focus:border-blue-500" placeholder="••••••••" />
+                              </div>
+                              <div className="w-24">
+                                <label className="block text-xs font-semibold text-slate-500 mb-1">Limit</label>
+                                <input type="number" value={editLimit} onChange={e => setEditLimit(parseInt(e.target.value))} className="w-full px-3 py-1.5 border border-slate-300 rounded outline-none text-sm focus:border-blue-500" />
+                              </div>
+                              <div className="flex gap-2">
+                                <button onClick={() => handleUpdateUser(user.id)} className="bg-blue-600 text-white px-4 py-1.5 rounded text-sm font-semibold hover:bg-blue-700">Save</button>
+                                <button onClick={() => setEditingUserId(null)} className="bg-slate-300 text-slate-700 px-4 py-1.5 rounded text-sm font-semibold hover:bg-slate-400">Cancel</button>
+                              </div>
+                            </div>
+                          </td>
+                        ) : (
+                          <>
+                            <td className="py-3 px-4 text-sm font-medium text-slate-800">{user.email}</td>
+                            <td className="py-3 px-4 text-sm text-slate-600">
+                              {user.subscription?.repliesGeneratedThisMonth || 0} used
+                            </td>
+                            <td className="py-3 px-4">
+                              <input 
+                                type="number" 
+                                defaultValue={user.subscription?.maxLimit || 20}
+                                className="w-20 px-2 py-1 border border-slate-300 rounded text-sm outline-none focus:border-blue-500"
+                                id={`limit-${user.id}`}
+                              />
+                            </td>
+                            <td className="py-3 px-4">
+                              <div className="flex gap-2">
+                                <button 
+                                  onClick={() => {
+                                    const el = document.getElementById(`limit-${user.id}`) as HTMLInputElement;
+                                    handleUpdateLimit(user.id, parseInt(el.value));
+                                  }}
+                                  className="text-xs font-semibold bg-blue-100 text-blue-700 px-3 py-1.5 rounded hover:bg-blue-200 transition-colors"
+                                >
+                                  Save Limit
+                                </button>
+                                <button 
+                                  onClick={() => {
+                                    setEditingUserId(user.id);
+                                    setEditEmail(user.email);
+                                    setEditPassword("");
+                                    setEditLimit(user.subscription?.maxLimit || 20);
+                                  }}
+                                  className="text-xs font-semibold bg-slate-200 text-slate-700 px-3 py-1.5 rounded hover:bg-slate-300 transition-colors"
+                                >
+                                  Edit
+                                </button>
+                                <button 
+                                  onClick={() => handleDeleteUser(user.id)}
+                                  className="text-xs font-semibold bg-red-100 text-red-700 px-3 py-1.5 rounded hover:bg-red-200 transition-colors"
+                                >
+                                  Delete
+                                </button>
+                              </div>
+                            </td>
+                          </>
+                        )}
                       </tr>
                     ))}
                     {users.length === 0 && (
