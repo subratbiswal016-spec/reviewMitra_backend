@@ -3,12 +3,12 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "mongodb"
   url      = env("DATABASE_URL")
 }
 
 model User {
-  id             String         @id @default(cuid())
+  id             String         @id @default(auto()) @map("_id") @db.ObjectId
   email          String         @unique
   password       String
   createdAt      DateTime       @default(now())
@@ -18,8 +18,8 @@ model User {
 }
 
 model Business {
-  id        String   @id @default(cuid())
-  userId    String
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @db.ObjectId
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   
   name      String
@@ -37,8 +37,8 @@ model Business {
 }
 
 model Reply {
-  id               String   @id @default(cuid())
-  businessId       String
+  id               String   @id @default(auto()) @map("_id") @db.ObjectId
+  businessId       String   @db.ObjectId
   business         Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
   
   reviewerName     String
@@ -52,8 +52,8 @@ model Reply {
 }
 
 model Subscription {
-  id                   String   @id @default(cuid())
-  userId               String   @unique
+  id                   String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId               String   @unique @db.ObjectId
   user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   
   status               String   @default("trial") // trial, active, past_due, canceled
@@ -65,7 +65,7 @@ model Subscription {
 }
 
 model GlobalSetting {
-  id        String   @id @default(cuid())
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
   key       String   @unique
   value     String
   updatedAt DateTime @updatedAt
