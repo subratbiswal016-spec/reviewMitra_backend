@@ -14,6 +14,7 @@ export default function SuperAdminPage() {
   const [loading, setLoading] = useState(false);
   
   const [users, setUsers] = useState<any[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
   const [qrUrl, setQrUrl] = useState("");
   const [loadingUsers, setLoadingUsers] = useState(false);
   
@@ -328,7 +329,18 @@ export default function SuperAdminPage() {
 
         {activeTab === "view" && (
           <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8">
-            <h2 className="text-2xl font-bold text-slate-800 mb-6">Customer List</h2>
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+              <h2 className="text-2xl font-bold text-slate-800">Customer List</h2>
+              <div className="relative w-full sm:w-64">
+                <input 
+                  type="text" 
+                  placeholder="Search by email..." 
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm"
+                />
+              </div>
+            </div>
             
             {loadingUsers ? (
               <p className="text-center text-slate-500">Loading customers...</p>
@@ -344,7 +356,7 @@ export default function SuperAdminPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {users.map(user => (
+                    {users.filter(user => user.email.toLowerCase().includes(searchQuery.toLowerCase())).map(user => (
                       <tr key={user.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
                         {editingUserId === user.id ? (
                           <td colSpan={4} className="py-4 px-4">
@@ -428,9 +440,9 @@ export default function SuperAdminPage() {
                         )}
                       </tr>
                     ))}
-                    {users.length === 0 && (
+                    {users.filter(user => user.email.toLowerCase().includes(searchQuery.toLowerCase())).length === 0 && (
                       <tr>
-                        <td colSpan={4} className="text-center py-6 text-slate-500">No customers found.</td>
+                        <td colSpan={4} className="text-center py-6 text-slate-500">No customers found matching your search.</td>
                       </tr>
                     )}
                   </tbody>
