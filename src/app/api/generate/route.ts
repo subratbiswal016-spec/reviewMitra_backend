@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
 
     // Check usage limits
     if (subscription) {
-      if (subscription.status === 'trial' && subscription.repliesGeneratedThisMonth >= 20) {
+      if (subscription.status === 'trial' && subscription.repliesGeneratedThisMonth >= subscription.maxLimit) {
         return NextResponse.json({ error: "LIMIT_REACHED" }, { 
           status: 402, // Payment Required
           headers: { "Access-Control-Allow-Origin": "*" } 

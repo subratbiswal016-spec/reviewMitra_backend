@@ -17,6 +17,7 @@ export default function DashboardPage() {
   });
   const [businessId, setBusinessId] = useState("");
   const [subscription, setSubscription] = useState<any>(null);
+  const [qrUrl, setQrUrl] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
@@ -43,6 +44,13 @@ export default function DashboardPage() {
           if (data.subscription) {
             setSubscription(data.subscription);
           }
+        });
+
+      // Fetch payment QR Code
+      fetch("/api/admin/settings")
+        .then(res => res.json())
+        .then(data => {
+          if (data.url) setQrUrl(data.url);
         });
     }
   }, [status, router]);
@@ -208,23 +216,27 @@ export default function DashboardPage() {
               <div>
                 <p className="text-slate-500 mb-6">Manage your subscription and view your remaining credits.</p>
                 
-                <div className="flex items-center justify-between p-4 bg-blue-50 border border-blue-100 rounded-lg mb-6">
+                <div className="flex flex-col sm:flex-row items-center justify-between p-4 bg-blue-50 border border-blue-100 rounded-lg mb-6 gap-4">
                   <div>
                     <h3 className="font-semibold text-blue-900 capitalize">{subscription?.status || 'Trial'} Plan</h3>
                     <p className="text-sm text-blue-700 mt-1">
-                      {subscription ? Math.max(0, 20 - subscription.repliesGeneratedThisMonth) : 20} replies remaining
+                      {subscription ? Math.max(0, (subscription.maxLimit || 20) - subscription.repliesGeneratedThisMonth) : 20} replies remaining
                     </p>
                   </div>
-                  <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors shadow-sm">
-                    Upgrade to Pro
-                  </button>
+                  {qrUrl && (
+                    <div className="text-center bg-white p-3 rounded-lg border border-blue-200 shadow-sm">
+                      <p className="text-xs font-bold text-slate-700 mb-2">Scan to Upgrade/Renew Limit</p>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={qrUrl} alt="Payment QR" className="w-32 h-32 object-cover mx-auto rounded-md border border-slate-100" />
+                    </div>
+                  )}
                 </div>
 
                 <div className="bg-white border border-slate-200 rounded-lg p-4">
                   <h4 className="text-sm font-semibold text-slate-800 mb-4">Usage Details</h4>
                   <div className="flex justify-between items-center py-2 border-b border-slate-100">
-                    <span className="text-slate-600 text-sm">Total Limit</span>
-                    <span className="font-medium">20</span>
+                    <span className="text-slate-600 text-sm">Allocated Limit</span>
+                    <span className="font-medium">{subscription?.maxLimit || 20}</span>
                   </div>
                   <div className="flex justify-between items-center py-2 border-b border-slate-100">
                     <span className="text-slate-600 text-sm">Used</span>
@@ -232,7 +244,7 @@ export default function DashboardPage() {
                   </div>
                   <div className="flex justify-between items-center py-2">
                     <span className="text-slate-600 text-sm">Remaining</span>
-                    <span className="font-medium text-green-600">{subscription ? Math.max(0, 20 - subscription.repliesGeneratedThisMonth) : 20}</span>
+                    <span className="font-medium text-green-600">{subscription ? Math.max(0, (subscription.maxLimit || 20) - subscription.repliesGeneratedThisMonth) : 20}</span>
                   </div>
                 </div>
               </div>

@@ -12,6 +12,10 @@ export default function SuperAdminPage() {
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   
+  const [users, setUsers] = useState<any[]>([]);
+  const [qrUrl, setQrUrl] = useState("");
+  const [loadingUsers, setLoadingUsers] = useState(false);
+  
   const [activeTab, setActiveTab] = useState("create");
 
   const handleCreateUser = async (e: React.FormEvent) => {
@@ -42,6 +46,83 @@ export default function SuperAdminPage() {
     }
   };
 
+  const fetchUsers = async () => {
+    if (!adminSecret) {
+      alert("Please enter the Admin Secret in the Create tab first!");
+      return;
+    }
+    setLoadingUsers(true);
+    try {
+      const res = await fetch("/api/admin/users", {
+        headers: { "x-admin-secret": adminSecret }
+      });
+      const data = await res.json();
+      if (data.users) setUsers(data.users);
+      else alert(data.error || "Failed to fetch users");
+    } catch(err) {
+      alert("Error fetching users");
+    } finally {
+      setLoadingUsers(false);
+    }
+  };
+
+  const fetchSettings = async () => {
+    try {
+      const res = await fetch("/api/admin/settings");
+      const data = await res.json();
+      if (data.url) setQrUrl(data.url);
+    } catch(err) {
+      console.log(err);
+    }
+  };
+
+  const handleUpdateLimit = async (userId: string, newLimit: number) => {
+    if (!adminSecret) return;
+    try {
+      const res = await fetch("/api/admin/users", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", "x-admin-secret": adminSecret },
+        body: JSON.stringify({ userId, maxLimit: newLimit })
+      });
+      if (res.ok) {
+        alert("Limit updated successfully!");
+        fetchUsers(); // Refresh
+      } else {
+        alert("Failed to update limit");
+      }
+    } catch(err) {
+      alert("Error updating limit");
+    }
+  };
+
+  const handleSaveQR = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!adminSecret) {
+      alert("Please enter the Admin Secret in the Create tab first!");
+      return;
+    }
+    try {
+      const res = await fetch("/api/admin/settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-admin-secret": adminSecret },
+        body: JSON.stringify({ url: qrUrl })
+      });
+      if (res.ok) {
+        alert("QR Code URL saved successfully!");
+      } else {
+        alert("Failed to save QR URL");
+      }
+    } catch(err) {
+      alert("Error saving QR URL");
+    }
+  };
+
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab);
+    if (tab === "view") fetchUsers();
+    if (tab === "payment") fetchSettings();
+  };
+
   return (
     <div className="min-h-screen bg-slate-50">
       {/* Navbar */}
@@ -55,18 +136,25 @@ export default function SuperAdminPage() {
             
             <div className="flex gap-6">
               <button 
-                onClick={() => setActiveTab("create")}
+                onClick={() => handleTabChange("create")}
                 className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === 'create' ? 'bg-slate-800 text-white' : 'text-slate-300 hover:bg-slate-700 hover:text-white'}`}
               >
                 <UserPlus size={18} />
                 Create Customer
               </button>
               <button 
-                onClick={() => setActiveTab("view")}
+                onClick={() => handleTabChange("view")}
                 className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === 'view' ? 'bg-slate-800 text-white' : 'text-slate-300 hover:bg-slate-700 hover:text-white'}`}
               >
                 <Users size={18} />
                 View Customers
+              </button>
+              <button 
+                onClick={() => handleTabChange("payment")}
+                className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === 'payment' ? 'bg-slate-800 text-white' : 'text-slate-300 hover:bg-slate-700 hover:text-white'}`}
+              >
+                <span>💳</span>
+                Payment QR
               </button>
               <Link href="/login" className="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-red-400 hover:bg-slate-800 hover:text-red-300 transition-colors ml-4 border border-slate-700">
                 <LogOut size={18} />
@@ -154,10 +242,95 @@ export default function SuperAdminPage() {
         )}
 
         {activeTab === "view" && (
-          <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 text-center">
-            <Users size={48} className="mx-auto text-slate-300 mb-4" />
-            <h2 className="text-xl font-bold text-slate-800 mb-2">Customer List Coming Soon</h2>
-            <p className="text-slate-500">In the future, you will see a list of all your customers and their usage here.</p>
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8">
+            <h2 className="text-2xl font-bold text-slate-800 mb-6">Customer List</h2>
+            
+            {loadingUsers ? (
+              <p className="text-center text-slate-500">Loading customers...</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="border-b border-slate-200">
+                      <th className="py-3 px-4 font-semibold text-sm text-slate-600">Email</th>
+                      <th className="py-3 px-4 font-semibold text-sm text-slate-600">Usage</th>
+                      <th className="py-3 px-4 font-semibold text-sm text-slate-600">Limit</th>
+                      <th className="py-3 px-4 font-semibold text-sm text-slate-600">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {users.map(user => (
+                      <tr key={user.id} className="border-b border-slate-100 hover:bg-slate-50">
+                        <td className="py-3 px-4 text-sm font-medium text-slate-800">{user.email}</td>
+                        <td className="py-3 px-4 text-sm text-slate-600">
+                          {user.subscription?.repliesGeneratedThisMonth || 0} used
+                        </td>
+                        <td className="py-3 px-4">
+                          <input 
+                            type="number" 
+                            defaultValue={user.subscription?.maxLimit || 20}
+                            className="w-20 px-2 py-1 border border-slate-300 rounded text-sm outline-none focus:border-blue-500"
+                            id={`limit-${user.id}`}
+                          />
+                        </td>
+                        <td className="py-3 px-4">
+                          <button 
+                            onClick={() => {
+                              const el = document.getElementById(`limit-${user.id}`) as HTMLInputElement;
+                              handleUpdateLimit(user.id, parseInt(el.value));
+                            }}
+                            className="text-xs font-semibold bg-blue-100 text-blue-700 px-3 py-1.5 rounded hover:bg-blue-200 transition-colors"
+                          >
+                            Save
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                    {users.length === 0 && (
+                      <tr>
+                        <td colSpan={4} className="text-center py-6 text-slate-500">No customers found.</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === "payment" && (
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8">
+            <h2 className="text-2xl font-bold text-slate-800 mb-2">Global Payment QR Code</h2>
+            <p className="text-slate-500 mb-8">Paste the image URL of your UPI QR Code. All customers will see this in their billing dashboard.</p>
+            
+            <form onSubmit={handleSaveQR} className="space-y-5">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">QR Code Image URL</label>
+                <input
+                  type="url"
+                  required
+                  value={qrUrl}
+                  onChange={(e) => setQrUrl(e.target.value)}
+                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                  placeholder="https://i.imgur.com/your-qr-code.png"
+                />
+              </div>
+
+              {qrUrl && (
+                <div className="mt-4 border border-slate-200 p-2 rounded-lg inline-block bg-slate-50">
+                  <p className="text-xs text-slate-500 mb-2 text-center">Preview:</p>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={qrUrl} alt="QR Preview" className="max-w-[200px] rounded" />
+                </div>
+              )}
+
+              <button
+                type="submit"
+                className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 rounded-xl transition-colors mt-4 shadow-md"
+              >
+                Save QR Code
+              </button>
+            </form>
           </div>
         )}
 
