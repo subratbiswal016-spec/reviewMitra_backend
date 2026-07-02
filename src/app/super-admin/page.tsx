@@ -170,6 +170,25 @@ export default function SuperAdminPage() {
     }
   };
 
+  const handleDeleteQR = async () => {
+    if (!adminSecret) return;
+    if (!confirm("Are you sure you want to delete the QR code?")) return;
+    try {
+      const res = await fetch("/api/admin/settings", {
+        method: "DELETE",
+        headers: { "x-admin-secret": adminSecret }
+      });
+      if (res.ok) {
+        alert("QR Code deleted successfully!");
+        setQrUrl("");
+      } else {
+        alert("Failed to delete QR");
+      }
+    } catch (err) {
+      alert("Error deleting QR");
+    }
+  };
+
   const handleTabChange = (tab: string) => {
     setActiveTab(tab);
     if (tab === "view") fetchUsers();
@@ -441,12 +460,23 @@ export default function SuperAdminPage() {
                 </div>
               )}
 
-              <button
-                type="submit"
-                className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 rounded-xl transition-colors mt-4 shadow-md"
-              >
-                Save QR Code
-              </button>
+              <div className="flex gap-4">
+                <button
+                  type="submit"
+                  className="flex-1 bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 rounded-xl transition-colors mt-4 shadow-md"
+                >
+                  Save QR Code
+                </button>
+                {qrUrl && (
+                  <button
+                    type="button"
+                    onClick={handleDeleteQR}
+                    className="flex-1 bg-red-100 hover:bg-red-200 text-red-700 font-bold py-3 rounded-xl transition-colors mt-4 shadow-md"
+                  >
+                    Delete QR Code
+                  </button>
+                )}
+              </div>
             </form>
           </div>
         )}

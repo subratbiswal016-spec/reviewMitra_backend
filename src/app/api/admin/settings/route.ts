@@ -39,3 +39,21 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }
+
+export async function DELETE(req: NextRequest) {
+  try {
+    const adminSecret = req.headers.get("x-admin-secret")?.trim();
+    if (adminSecret !== process.env.ADMIN_SECRET?.trim()) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    await prisma.globalSetting.delete({
+      where: { key: "PAYMENT_QR_URL" }
+    });
+
+    return NextResponse.json({ message: "QR deleted successfully" });
+  } catch (error) {
+    console.error("Delete Settings Error:", error);
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+  }
+}
