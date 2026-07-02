@@ -131,11 +131,24 @@ export default function DashboardPage() {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 p-8 overflow-y-auto">
-        <div className="max-w-3xl mx-auto">
-          <h1 className="text-2xl font-bold text-slate-800 mb-6">
-            {activeTab === "profile" ? "Business Profile Settings" : "Billing & Usage"}
-          </h1>
+      <div className="flex-1 flex flex-col h-screen overflow-hidden">
+        {/* Top Navbar */}
+        <header className="bg-white border-b border-slate-200 px-4 md:px-8 py-3 flex justify-end items-center sticky top-0 z-10 shadow-sm">
+          <div className="flex items-center gap-3">
+            <span className="text-sm font-medium text-slate-600 hidden sm:inline-block">
+              {session.user?.email}
+            </span>
+            <div className="w-9 h-9 bg-gradient-to-br from-blue-100 to-indigo-100 text-blue-700 border border-blue-200 rounded-full flex items-center justify-center font-bold text-sm shadow-sm">
+              {session.user?.email?.charAt(0).toUpperCase() || "U"}
+            </div>
+          </div>
+        </header>
+
+        <div className="flex-1 p-4 md:p-8 overflow-y-auto">
+          <div className="max-w-3xl mx-auto">
+            <h1 className="text-2xl font-bold text-slate-800 mb-6">
+              {activeTab === "profile" ? "Business Profile Settings" : "Billing & Usage"}
+            </h1>
 
           <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
             {activeTab === "profile" && (

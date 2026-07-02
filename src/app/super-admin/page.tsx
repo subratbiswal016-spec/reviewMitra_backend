@@ -59,7 +59,7 @@ export default function SuperAdminPage() {
     }
     setLoadingUsers(true);
     try {
-      const res = await fetch("/api/admin/users", {
+      const res = await fetch(`/api/admin/users?t=${Date.now()}`, {
         headers: { "x-admin-secret": adminSecret }
       });
       const data = await res.json();
@@ -74,7 +74,7 @@ export default function SuperAdminPage() {
 
   const fetchSettings = async () => {
     try {
-      const res = await fetch("/api/admin/settings");
+      const res = await fetch(`/api/admin/settings?t=${Date.now()}`);
       const data = await res.json();
       if (data.url) setQrUrl(data.url);
     } catch(err) {
