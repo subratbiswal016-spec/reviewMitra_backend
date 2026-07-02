@@ -96,6 +96,28 @@ export default function SuperAdminPage() {
     }
   };
 
+  const handleDeleteUser = async (userId: string) => {
+    if (!adminSecret) return;
+    if (!confirm("Are you sure you want to delete this customer? This cannot be undone.")) return;
+
+    try {
+      const res = await fetch("/api/admin/users", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json", "x-admin-secret": adminSecret },
+        body: JSON.stringify({ userId })
+      });
+      
+      if (res.ok) {
+        alert("Customer deleted successfully!");
+        fetchUsers(); // Refresh
+      } else {
+        alert("Failed to delete customer");
+      }
+    } catch(err) {
+      alert("Error deleting customer");
+    }
+  };
+
   const handleSaveQR = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!adminSecret) {
@@ -183,6 +205,7 @@ export default function SuperAdminPage() {
                   <input
                     type={showSecret ? "text" : "password"}
                     required
+                    autoComplete="new-password"
                     value={adminSecret}
                     onChange={(e) => setAdminSecret(e.target.value)}
                     className="w-full px-4 py-2 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none pr-10"
@@ -284,15 +307,23 @@ export default function SuperAdminPage() {
                           />
                         </td>
                         <td className="py-3 px-4">
-                          <button 
-                            onClick={() => {
-                              const el = document.getElementById(`limit-${user.id}`) as HTMLInputElement;
-                              handleUpdateLimit(user.id, parseInt(el.value));
-                            }}
-                            className="text-xs font-semibold bg-blue-100 text-blue-700 px-3 py-1.5 rounded hover:bg-blue-200 transition-colors"
-                          >
-                            Save
-                          </button>
+                          <div className="flex gap-2">
+                            <button 
+                              onClick={() => {
+                                const el = document.getElementById(`limit-${user.id}`) as HTMLInputElement;
+                                handleUpdateLimit(user.id, parseInt(el.value));
+                              }}
+                              className="text-xs font-semibold bg-blue-100 text-blue-700 px-3 py-1.5 rounded hover:bg-blue-200 transition-colors"
+                            >
+                              Save
+                            </button>
+                            <button 
+                              onClick={() => handleDeleteUser(user.id)}
+                              className="text-xs font-semibold bg-red-100 text-red-700 px-3 py-1.5 rounded hover:bg-red-200 transition-colors"
+                            >
+                              Delete
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}
