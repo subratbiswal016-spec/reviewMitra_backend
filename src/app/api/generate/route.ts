@@ -73,17 +73,47 @@ export async function POST(req: NextRequest) {
       userMessage += `\n\nADDITIONAL INSTRUCTION FROM OWNER: ${customInstruction}`;
     }
 
-    // 4. Call Google Gemini API
-    const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GEMINI_API_KEY || "");
-    const model = genAI.getGenerativeModel({ 
-      model: "gemini-flash-latest",
-      generationConfig: {
-        responseMimeType: "application/json",
-      }
-    });
+    // 4. Call Google Gemini API (with key rotation)
+    const keys = (process.env.GOOGLE_GEMINI_API_KEY || "").split(",").map(k => k.trim()).filter(Boolean);
+    if (keys.length === 0) {
+      return NextResponse.json({ error: "No API keys configured" }, { status: 500 });
+    }
 
-    const result = await model.generateContent(`System: ${SYSTEM_PROMPT}\n\nUser: ${userMessage}`);
-    let aiText = result.response.text();
+    let aiText = "";
+    let lastError = null;
+
+    for (const key of keys) {
+      try {
+        const genAI = new GoogleGenerativeAI(key);
+        const model = genAI.getGenerativeModel({ 
+          model: "gemini-flash-latest",
+          generationConfig: {
+            responseMimeType: "application/json",
+          }
+        });
+
+        const result = await model.generateContent(`System: ${SYSTEM_PROMPT}\n\nUser: ${userMessage}`);
+        aiText = result.response.text();
+        break; // Success! Exit the loop.
+      } catch (error: any) {
+        lastError = error;
+        console.warn(`[Gemini API] Request failed with key ending in ...${key.slice(-4)}. Error:`, error.message);
+        
+        // If it's a 429 Too Many Requests, try the next key
+        if (error.message?.includes('429') || error.status === 429) {
+          console.log("-> Trying next API key...");
+          continue;
+        }
+        
+        // Otherwise, it's a different error (e.g. invalid key), still try next key just in case
+        continue;
+      }
+    }
+
+    if (!aiText) {
+      console.error("All API keys failed. Last error:", lastError);
+      return NextResponse.json({ error: "All API keys exhausted or failed" }, { status: 429 });
+    }
     
     // Clean up potential markdown formatting that local models sometimes add
     aiText = aiText.replace(/```json/g, '').replace(/```/g, '').trim();
