@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import Groq from "groq-sdk";
+// import { GoogleGenerativeAI } from "@google/generative-ai";
 import prisma from "@/lib/prisma";
 
 const SYSTEM_PROMPT = `You are a real, human business owner replying to Google reviews. Write your replies so naturally that NO ONE could ever guess it was written by AI. 
@@ -73,7 +74,31 @@ export async function POST(req: NextRequest) {
       userMessage += `\n\nADDITIONAL INSTRUCTION FROM OWNER: ${customInstruction}`;
     }
 
-    // 4. Call Google Gemini API (with key rotation)
+    // 4. Call Groq API (Llama 3.1)
+    const apiKey = process.env.GROQ_API_KEY || "";
+    if (!apiKey) {
+      return NextResponse.json({ error: "Groq API key not configured" }, { status: 500 });
+    }
+
+    let aiText = "";
+    try {
+      const groq = new Groq({ apiKey });
+      const chatCompletion = await groq.chat.completions.create({
+        messages: [
+          { role: "system", content: SYSTEM_PROMPT },
+          { role: "user", content: userMessage }
+        ],
+        model: "llama-3.1-8b-instant",
+        response_format: { type: "json_object" }
+      });
+      aiText = chatCompletion.choices[0]?.message?.content || "";
+    } catch (error: any) {
+      console.error("[Groq API Error]:", error);
+      return NextResponse.json({ error: "Failed to generate reply" }, { status: 500 });
+    }
+    
+    /* 
+    // === Old Google Gemini API Code (Commented out per request) ===
     const keys = (process.env.GOOGLE_GEMINI_API_KEY || "").split(",").map(k => k.trim()).filter(Boolean);
     if (keys.length === 0) {
       return NextResponse.json({ error: "No API keys configured" }, { status: 500 });
@@ -98,14 +123,10 @@ export async function POST(req: NextRequest) {
       } catch (error: any) {
         lastError = error;
         console.warn(`[Gemini API] Request failed with key ending in ...${key.slice(-4)}. Error:`, error.message);
-        
-        // If it's a 429 Too Many Requests, try the next key
         if (error.message?.includes('429') || error.status === 429) {
           console.log("-> Trying next API key...");
           continue;
         }
-        
-        // Otherwise, it's a different error (e.g. invalid key), still try next key just in case
         continue;
       }
     }
@@ -114,6 +135,7 @@ export async function POST(req: NextRequest) {
       console.error("All API keys failed. Last error:", lastError);
       return NextResponse.json({ error: "All API keys exhausted or failed" }, { status: 429 });
     }
+    */
     
     // Clean up potential markdown formatting that local models sometimes add
     aiText = aiText.replace(/```json/g, '').replace(/```/g, '').trim();
