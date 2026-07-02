@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Users, UserPlus, LogOut, Eye, EyeOff } from "lucide-react";
 
 export default function SuperAdminPage() {
-  const [adminSecret, setAdminSecret] = useState("");
+  const [adminSecret, setAdminSecret] = useState("supersecret123");
   const [showSecret, setShowSecret] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
