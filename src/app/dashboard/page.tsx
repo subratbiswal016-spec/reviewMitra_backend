@@ -18,6 +18,7 @@ export default function DashboardPage() {
   const [businessId, setBusinessId] = useState("");
   const [subscription, setSubscription] = useState<any>(null);
   const [qrUrl, setQrUrl] = useState("");
+  const [showFullQr, setShowFullQr] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
@@ -227,7 +228,12 @@ export default function DashboardPage() {
                     <div className="text-center bg-white p-3 rounded-lg border border-blue-200 shadow-sm">
                       <p className="text-xs font-bold text-slate-700 mb-2">Scan to Upgrade/Renew Limit</p>
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={qrUrl} alt="Payment QR" className="w-32 h-32 object-cover mx-auto rounded-md border border-slate-100" />
+                      <img 
+                        src={qrUrl} 
+                        alt="Payment QR" 
+                        onClick={() => setShowFullQr(true)}
+                        className="w-32 h-32 object-cover mx-auto rounded-md border border-slate-100 cursor-pointer hover:opacity-80 transition-opacity shadow-sm" 
+                      />
                     </div>
                   )}
                 </div>
@@ -252,6 +258,26 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
+      
+      {/* QR Code Full Screen Modal */}
+      {showFullQr && qrUrl && (
+        <div 
+          className="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 cursor-pointer"
+          onClick={() => setShowFullQr(false)}
+        >
+          <div className="bg-white p-4 rounded-2xl max-w-sm w-full text-center shadow-2xl cursor-default" onClick={(e) => e.stopPropagation()}>
+            <h3 className="font-bold text-xl text-slate-800 mb-4">Scan to Pay</h3>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={qrUrl} alt="Full QR Code" className="w-full h-auto rounded-lg mb-6 border border-slate-200 shadow-sm" />
+            <button 
+              onClick={() => setShowFullQr(false)}
+              className="w-full bg-slate-100 text-slate-700 font-bold py-3 rounded-xl hover:bg-slate-200 transition-colors"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
