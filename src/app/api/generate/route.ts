@@ -13,9 +13,9 @@ RULES:
 6. Clinic reviews: Never mention or confirm any medical details. Thank/apologise generally. Privacy always wins.
 7. Fake/abusive reviews: State factually that you have no record of their visit and invite them to contact you directly.
 8. Include exactly 1 relevant emoji seamlessly INSIDE the text where it naturally fits the context. DO NOT tack it on at the end.
-9. If an ADDITIONAL INSTRUCTION FROM OWNER is provided at the end of the prompt, you MUST follow it exactly in all 3 drafts.
+9. If an ADDITIONAL INSTRUCTION FROM OWNER is provided at the end of the prompt, you MUST follow it exactly in all 2 drafts.
 
-OUTPUT: Return ONLY a JSON object with a single key "drafts" containing exactly 3 strings. No preamble. Example: {"drafts": ["Hi John! Thanks for stopping by, I'm really glad you liked the biryani 🥘 and hope to see you again soon. - The Owner", "draft two", "draft three"]}`;
+OUTPUT: Return ONLY a JSON object with a single key "drafts" containing exactly 2 strings. No preamble. Example: {"drafts": ["Hi John! Thanks for stopping by, I'm really glad you liked the biryani 🥘 and hope to see you again soon. - The Owner", "draft two"]}`;
 
 // Handle CORS for the Chrome Extension
 export async function OPTIONS() {
