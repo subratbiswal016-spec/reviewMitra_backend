@@ -24,8 +24,8 @@ export async function GET(req: NextRequest) {
 
 export async function PUT(req: NextRequest) {
   try {
-    const adminSecret = req.headers.get("x-admin-secret");
-    if (adminSecret !== process.env.ADMIN_SECRET) {
+    const adminSecret = req.headers.get("x-admin-secret")?.trim();
+    if (adminSecret !== process.env.ADMIN_SECRET?.trim()) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 

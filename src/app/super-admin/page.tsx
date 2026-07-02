@@ -2,10 +2,11 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Users, UserPlus, LogOut } from "lucide-react";
+import { Users, UserPlus, LogOut, Eye, EyeOff } from "lucide-react";
 
 export default function SuperAdminPage() {
   const [adminSecret, setAdminSecret] = useState("");
+  const [showSecret, setShowSecret] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [limit, setLimit] = useState(20);
@@ -178,14 +179,23 @@ export default function SuperAdminPage() {
               <div className="p-4 bg-slate-50 rounded-lg border border-slate-200 mb-6">
                 <label className="block text-sm font-bold text-slate-700 mb-1">Admin Secret Password</label>
                 <p className="text-xs text-slate-500 mb-3">Required to prove you are the owner.</p>
-                <input
-                  type="password"
-                  required
-                  value={adminSecret}
-                  onChange={(e) => setAdminSecret(e.target.value)}
-                  className="w-full px-4 py-2 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                  placeholder="Enter super admin secret"
-                />
+                <div className="relative">
+                  <input
+                    type={showSecret ? "text" : "password"}
+                    required
+                    value={adminSecret}
+                    onChange={(e) => setAdminSecret(e.target.value)}
+                    className="w-full px-4 py-2 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none pr-10"
+                    placeholder="Enter super admin secret"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowSecret(!showSecret)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  >
+                    {showSecret ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
