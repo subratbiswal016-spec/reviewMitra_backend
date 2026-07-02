@@ -284,6 +284,7 @@ export default function DashboardPage() {
             )}
           </div>
         </div>
+        </div>
       </div>
       
       {/* QR Code Full Screen Modal */}
