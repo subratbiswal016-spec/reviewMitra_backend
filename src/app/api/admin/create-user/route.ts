@@ -36,7 +36,8 @@ export async function POST(req: NextRequest) {
         subscription: {
           create: {
             status: "trial",
-            repliesGeneratedThisMonth: 0
+            repliesGeneratedThisMonth: 0,
+            maxLimit: limit
           }
         }
       }
