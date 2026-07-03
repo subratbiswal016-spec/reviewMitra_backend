@@ -41,21 +41,22 @@ export async function POST(req: NextRequest) {
     }
 
     // 2. Fetch Business Profile & Enforce Usage Limits
-    let businessStr = "Generic Business / Shop / India / Professional / English / No special rules";
-    let subscription = null;
-    let userId = null;
-    
-    if (businessId) {
-      const business = await prisma.business.findUnique({ 
-        where: { id: businessId },
-        include: { user: { include: { subscription: true } } }
-      });
-      if (business) {
-        businessStr = `${business.name} / ${business.type} / ${business.city} / ${business.tone} / ${business.language} / ${business.phone} / ${business.rules || 'None'}`;
-        subscription = business.user?.subscription;
-        userId = business.userId;
-      }
+    if (!businessId) {
+      return NextResponse.json({ error: "Missing Business ID. Please save your profile first." }, { status: 400, headers: { "Access-Control-Allow-Origin": "*" } });
     }
+
+    const business = await prisma.business.findUnique({ 
+      where: { id: businessId },
+      include: { user: { include: { subscription: true } } }
+    });
+
+    if (!business) {
+      return NextResponse.json({ error: "Please put correct Business ID" }, { status: 400, headers: { "Access-Control-Allow-Origin": "*" } });
+    }
+
+    const businessStr = `${business.name} / ${business.type} / ${business.city} / ${business.tone} / ${business.language} / ${business.phone} / ${business.rules || 'None'}`;
+    const subscription = business.user?.subscription;
+    const userId = business.userId;
 
     // Check usage limits
     if (subscription) {
